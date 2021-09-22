@@ -7,6 +7,7 @@ import time
 import urllib.request
 import run
 
+
 @app.route("/", methods=["POST","GET"])
 def index(one = 0, two = 0, three = 0):
     if request.method == "POST":
@@ -39,7 +40,10 @@ def website(url):
 
 def url_lookup(target_url):
     print(target_url)
-    result = run.collection.find_one({"url":target_url})
+    client = pymongo.MongoClient("mongodb+srv://todd:O12345@cluster0.nloih.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
+    db = client["cext"]
+    collection = db["1"]
+    result = collection.find_one({"url":target_url})
     print("result "+str(result))
     if (result):
         one = result["one"]
@@ -55,10 +59,13 @@ def url_lookup(target_url):
 
 def update_rating(target_url, rating):
     print("rating")
+    client = pymongo.MongoClient("mongodb+srv://todd:O12345@cluster0.nloih.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
+    db = client["cext"]
+    collection = db["1"]
     print(rating)
-    result = run.collection.find_one({"url":target_url})
+    result = collection.find_one({"url":target_url})
     if not result:
-        run.collection.insert_one({"url":target_url,"one": 1 if rating == 1 else 0,"two": 1 if rating == 2 else 0,"three": 1 if rating == 3 else 0})
+        collection.insert_one({"url":target_url,"one": 1 if rating == 1 else 0,"two": 1 if rating == 2 else 0,"three": 1 if rating == 3 else 0})
     else:
         if int(rating) == 1:
             newvalues = {"$set": {'one': result["one"] + 1}}
@@ -66,4 +73,4 @@ def update_rating(target_url, rating):
             newvalues = {"$set": {'two': result["two"] + 1}}
         else:
             newvalues = {"$set": {'three': result["three"] + 1}}
-        run.collection.update_one({"url":target_url},newvalues)
+        collection.update_one({"url":target_url},newvalues)
