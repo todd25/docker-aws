@@ -7,12 +7,15 @@ import time
 import urllib.request
 import run
 
+static_page_list = ['members']
 
 @app.route("/", methods=["POST","GET"])
 def index(one = 0, two = 0, three = 0):
+    print("!")
     if request.method == "POST":
         if "search" in request.form:
             new_url = request.form["search"]
+            result = url_lookup(new_url)
             return redirect(url_for("website", url = new_url))
     return render_template("index.html", one_star = one, two_star = two, three_star = three, total = one+two+three)
 
@@ -24,8 +27,15 @@ def index(one = 0, two = 0, three = 0):
 
     # return "Hello from Flask"
 
+@app.route("/members")
+def members():
+    return {"members": ["member1","member2","member3"]}
+
 @app.route("/<url>", methods=["POST","GET"])
 def website(url):
+    print("!!!!!!")
+    if url in static_page_list:
+        return {"members": ["member1","member2","member3"]}
     if request.method == "POST":
         if "search" in request.form:
             new_url = request.form["search"]
