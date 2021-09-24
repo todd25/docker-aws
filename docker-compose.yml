@@ -10,6 +10,7 @@ services:
       - 8080
     ports:
       - "27017:27017"
+      - "5000:8080"
     # network_mode: bridge
   nginx:
     build: ./nginx
@@ -18,3 +19,14 @@ services:
     ports:
       - "80:80"
     # network_mode: bridge
+  react:
+    build: ./react-app
+    container_name: react
+    restart: always
+    stdin_open: true
+    depends_on:
+      - flask
+    ports:
+      - "8081:3000"
+    # expose:
+    #   - 8081
