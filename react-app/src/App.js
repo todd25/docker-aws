@@ -1,31 +1,26 @@
-import React, {useState ,useEffect } from 'react'
+// import logo from './logo.svg';
+import './App.css';
+import Search from "./components/search";
+import Rating from "./components/rating";
+import Comments from "./components/comments";
+// import Submit from "./components/submit";
+import Google from "./components/google";
+import React from 'react';
 
 function App() {
-
-  const [data,setData] = useState([{}])
-
-  useEffect(() => {
-    fetch("/members").then(
-      res =>res.json()
-    ).then(
-      data => {
-        setData(data)
-        console.log(data)
-      }
-    )
-  },[])
-
   return (
-    <div>
-      {(typeof data.members == 'undefined') ? (
-        <p>Loading...</p>
-      ): (
-        data.members.map((member,i) => (
-          <p key={i}>{member}</p>
-        ))
-      )}
+    // <React.Fragment>
+    <div className="App">
+      <header className="App-header">
+        <Search />
+        <Rating />
+        <Comments />
+        {/* <Submit /> */}
+        <Google />
+      </header>
     </div>
-  )
+    // </React.Fragment>
+  );
 }
 
-export default App
+export default App;
