@@ -5,7 +5,7 @@ from pymongo import MongoClient
 
 print("started!!!")
 
-def connect(host='http://google.com'):
+def connect(host='https://google.com'):
     try:
         urllib.request.urlopen(host) #Python 3.x
         return True

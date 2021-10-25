@@ -6,96 +6,31 @@ from pymongo import MongoClient
 import time
 import urllib.request
 import run
+from bson.json_util import dumps
+from pymongo.errors import ConfigurationError
+from flask import jsonify
+import dns.resolver
+import datetime
 
-# static_page_list = ['members', 'set']
+try:
+    client = pymongo.MongoClient("mongodb+srv://todd:O12345@cluster0.nloih.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",serverSelectionTimeoutMS=10, connectTimeoutMS=20000)
+except ConfigurationError:
+    print("Data Base Connection failed. Error")
+    exit()
 
-# @app.route("/", methods=["POST","GET"])
-# def index(one = 0, two = 0, three = 0):
-#     print("!")
-#     if request.method == "POST":
-#         if "search" in request.form:
-#             new_url = request.form["search"]
-#             result = url_lookup(new_url)
-#             return redirect(url_for("website", url = new_url))
-#     return render_template("index.html", one_star = one, two_star = two, three_star = three, total = one+two+three)
+if not client:
+    print("no client")
+    exit()
 
-    # Use os.getenv("key") to get environment variables
-    # app_name = os.getenv("APP_NAME")
-
-    # if app_name:
-    #     return f"Hello from {app_name} running in a Docker container behind Nginx!"
-
-    # return "Hello from Flask"
-
-# @app.route("/members")
-# def members():
-#     return {"members": ["member1","member2","member3"]}
-
-
-
-# @app.route("/<url>", methods=["POST","GET"])
-# def website(url):
-#     print("!!!!!!")
-#     if url in static_page_list:
-#         return {"members": ["member1","member2","member3"]}
-#     if request.method == "POST":
-#         if "search" in request.form:
-#             new_url = request.form["search"]
-#             result = url_lookup(new_url)
-#             print(result)
-#             return redirect(url_for("website", url = new_url))
-#         elif "rate" in request.form:
-#             update_rating(url, request.form["rate"])
-#     result = url_lookup(url)
-#     return render_template("index.html", current_url = url, one_star = result[0], two_star = result[1], three_star = result[2], total = result[3])
-
-
-# def url_lookup(target_url):
-#     print(target_url)
-#     client = pymongo.MongoClient("mongodb+srv://todd:O12345@cluster0.nloih.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
-#     db = client["cext"]
-#     collection = db["1"]
-#     result = collection.find_one({"url":target_url})
-#     print("result "+str(result))
-#     if (result):
-#         one = result["one"]
-#         two = result["two"]
-#         three = result['three']
-#         print(three)
-#         return [one,two,three,one+two+three]
-#         # return redirect(url_for("website",url=target_url))
-#     else:
-#         # return redirect(url_for("website",url=target_url))
-#         return [0,0,0,0]
-
-
-# def update_rating(target_url, rating):
-#     print("rating")
-#     client = pymongo.MongoClient("mongodb+srv://todd:O12345@cluster0.nloih.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
-#     db = client["cext"]
-#     collection = db["1"]
-#     print(rating)
-#     result = collection.find_one({"url":target_url})
-#     if not result:
-#         collection.insert_one({"url":target_url,"one": 1 if rating == 1 else 0,"two": 1 if rating == 2 else 0,"three": 1 if rating == 3 else 0})
-#     else:
-#         if int(rating) == 1:
-#             newvalues = {"$set": {'one': result["one"] + 1}}
-#         elif int(rating) == 2:
-#             newvalues = {"$set": {'two': result["two"] + 1}}
-#         else:
-#             newvalues = {"$set": {'three': result["three"] + 1}}
-#         collection.update_one({"url":target_url},newvalues)
-
-
-
-
-
-
-
-client = pymongo.MongoClient("mongodb+srv://todd:O12345@cluster0.nloih.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
 db = client["cext"]
+if not db:
+    print("no db")
+    exit()
+    
 collection = db["1"]
+if not collection:
+    print("no collection")
+    exit()
 
 # Websites {
 #  "_id": 4f0b2f55096f7622f6000000,
@@ -104,7 +39,21 @@ collection = db["1"]
 #  "ratings": [123,24],
 # }
 
+def client_exist():
+    connection = MongoClient("mongodb+srv://todd:O12345@cluster0.nloih.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
+    try:
+        connection.database_names()
+        # print('Data Base Connection Established........')
+    except OperationFailure as err:
+        print(f"Data Base Connection failed. Error: {err}")
+        return False
+    if not client or not db or not collection:
+        print("no connection")
+        return False
+    return True
+
 def set_website(URL, ratings):
+
     website = get_website(URL)
     if not website:
         collection.insert_one({"url": URL, "ratings": ratings})
@@ -112,9 +61,10 @@ def set_website(URL, ratings):
         collection.update_one({"url": URL}, {"$set": {"ratings": [website["ratings"][0] + ratings[0], 
                                                                   website["ratings"][1] + ratings[1]
                                                                  ]}})
-    return website
+    return dumps(website)
 
 def get_website(URL):
+    # print("get_website: " + URL)
     return collection.find_one({"url":URL})
 
 # comments {
@@ -132,29 +82,41 @@ def get_website(URL):
 #     ],
 # }
 
-def set_comments(method, website, user, text, ratings, date):
-    comment = get_comments(method, value)
-    if not comment:
-        collection.insert_one({"website": {"$id": website}, 
-                               "user": {"$id": user}, 
-                               "text": text, 
-                               "ratings": ratings, 
-                               "date": date,
-                            #    "img": img
-                               })
-    else:
-        if method == "both":
-            collection.update_one()
-    return comment
+def set_comments(website, user, text, date):
+    if date == "":
+        date = datetime.datetime.now()
+    collection.insert_one({"type": 1, "website": website, "user": user, 
+                            "text": text, "date":date})
+    return get_comments("website",website,user)
+    # return comment
 
 def get_comments(method, website, user):
     if method == "website":
-        return collection.find({"website.$id": website}) 
+        # print(website)
+        comments = list(collection.find({"type":1}))
+        print("found :")
+        # print(comments)
+        # res = []
+        for comment in comments:
+            # print (comment)
+            if '_id' in comment:
+                comment['_id'] = str(comment['_id'])
+            
+            user = get_user("email",comment["user"],"","")
+            comment["image"] = user["image"]
+            comment["first_name"] = user["first_name"]
+            comment["last_name"] = user["last_name"]
+
+            # res.append(jsonify(comment))
+        print(jsonify(comments))
+        return jsonify(comments)
     elif method == "user":
         return collection.find({"user.$id": user}) 
-    elif emthod == "both":
+    elif memthod == "both":
         return collection.find_one({"user.$id": user}, {"website.$id": website}) 
-    return {}
+    else:
+        print("get_comments: incorrect method")
+    return ''
         
 # Likes {
 #     "_id:"lf0b2f55096f7622f6000000,
@@ -198,57 +160,84 @@ def get_likes(method, character, website, user, comment):
 #           "img":"jksahfdkjhquionq123213"
 #  }
 
-def set_user(method, email, last_name, first_name):
+def set_user(method, email, last_name, first_name, image):
     user = get_user(method, email, last_name, first_name)
-    if not website:
-        collection.insert_one({"url": URL, "ratings": ratings})
+    if not user:
+        user2 = collection.insert_one({"email": email, "last_name": last_name, 
+                            "first_name": first_name, "image":image})
+        if '_id' in user2:
+            user2['_id'] = str(user2['_id'])
+        return jsonify(user2)   
     else:
-        collection.update_one({"url": URL}, {"$set": {"ratings": [website["ratings"][0] + ratings[0], 
-                                                                  website["ratings"][1] + ratings[1]
-                                                                 ]}})
-    return website
+        # print("user already exists")
+        if '_id' in user:
+            user['_id'] = str(user['_id'])
+        return jsonify(user)
+        # collection.update_one
+        return {}
 
 def get_user(method, email, last_name, first_name):
     if method == "email":
-        return collection.find_one({"website.$id": website}) 
+        return collection.find_one({"email": email}) 
     elif method == "name":
         return collection.find({"last_name": last_name, "first_name": first_name}) 
     return {}
 
 @app.route("/set", methods=["POST","GET"])
 def set():
+    if not client_exist():
+        return
+
     if request.method == "POST":
         content = request.json
-        print("got info: " + content)
+
+        # print("set :", end='')
+        print(content)
+        
         if content["type"] == 0:
             result = set_website(content["url"], content["ratings"])
         elif content["type"] == 1:
-            result = set_comments(content["method"], content["website"], content["user"], content["text"], content["ratings"], content["date"])
+            result = set_comments(content["website"], content["user"], content["text"], content["date"])
         elif content["type"] == 2:
             result = set_likes(content["method"], content["character"], content["website"], content["user"], content["comment"])
         elif content["type"] == 3:
-            result = set_user(content["method"], content["email"], content["last_name"], content["first_name"])
+            result = set_user(content["method"], content["email"], content["last_name"], content["first_name"], content["image"])
         else:
             result = {}
-        print(result)
+
+        # print("result :", end='')
+        # print(result)
+
         return result
     return {}
 
 @app.route("/get", methods=["POST","GET"])
 def get():
+    if not client_exist():
+        return
+
     if request.method == "POST":
         content = request.json
-        print("get info: " + content)
+
+        # print("get :", end='')
+        # print(content)
+
         if content["type"] == 0:
             result = get_website(content["url"], content["ratings"])
         elif content["type"] == 1:
             result = get_comments(content["method"], content["website"], content["user"])
+            # print("get_comments:")
         elif content["type"] == 2:
             result = get_likes(content["method"], content["character"], content["website"], content["user"], content["comment"])
         elif content["type"] == 3:
-            result = get_user(content["method"], content["email"], content["last_name"], content["first_name"])
+            result = get_user(content["method"], content["email"], content["last_name"], content["first_name"], content["image"])
         else:
             result = {}
-        print(result)
+            
+        # print("result :", end='')
+        # print(list(result))
+        # if len(list(result)) == 0:
+        #     return ''
+
         return result
     return {}

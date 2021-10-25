@@ -20,23 +20,27 @@ class Rating extends Component {
         );
     }
     componentDidMount() {
-        fetch("/info", {
+        fetch("/set", {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json',
               },
               body: JSON.stringify({
-                URL: this.state.URL,
+                type: 0,
+                url: "www.gogasdole.com",
+                ratings: [12,2]
+                // URL: this.state.URL,
              })
             })
           .then(res => res.json())
           .then(
             (result) => {
-              this.setState({
-                isLoaded: true,
-                items: result.members
-              });
+              console.log(result)
+              // this.setState({
+              //   isLoaded: true,
+              //   items: result.members
+              // });
             },
             // Note: it's important to handle errors here
             // instead of a catch() block so that we don't swallow
@@ -61,7 +65,7 @@ class Rating extends Component {
             return (
                 <ul>
                   {items.map(item => (
-                    <li>
+                    <li key ="{]">
                       {item}
                     </li>
                   ))}
@@ -69,9 +73,9 @@ class Rating extends Component {
               );
         } else {
             return (
-                <ul class="list-group" style={{width: '23rem'}}>
+                <ul className="list-group" style={{width: '23rem'}}>
                     {keywords.map(keyword => (
-                        <li class="list-group-item">{keyword}</li>
+                        <li key = {keyword} className="list-group-item">{keyword}</li>
                     ))}
                 </ul>
             );
