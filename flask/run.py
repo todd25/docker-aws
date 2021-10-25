@@ -17,4 +17,4 @@ if __name__ == "__main__":
 
     # print(client)
     
-    app.run(debug=True)
+    app.run(debug=False)

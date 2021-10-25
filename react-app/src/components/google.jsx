@@ -36,8 +36,7 @@ class Google extends Component {
     }
 
     responseGoogleFail= (response) => {
-        console.log(response.profileObj);
-        this.props.userLogin(response.profileObj)
+        console.log(response);
     }
 
     render() {
