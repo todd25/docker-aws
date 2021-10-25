@@ -13,7 +13,8 @@ import dns.resolver
 import datetime
 
 try:
-    client = pymongo.MongoClient("mongodb+srv://todd:O12345@cluster0.nloih.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",serverSelectionTimeoutMS=10, connectTimeoutMS=20000)
+    client = pymongo.MongoClient("mongodb+srv://todd:O12345@cluster0.nloih.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",serverSelectionTimeoutMS=10, connectTimeoutMS=20000, socketTimeoutMS=None, socketKeepAlive=True, connect=False, maxPoolsize=1)
+    print("started2222")
 except ConfigurationError:
     print("Data Base Connection failed. Error")
     exit()
