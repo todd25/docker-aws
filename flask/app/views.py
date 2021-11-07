@@ -1,5 +1,5 @@
 from app import app
-from flask import render_template, request,redirect,url_for
+from flask import render_template, request,redirect,url_for,make_response
 import os
 import pymongo
 from pymongo import MongoClient
@@ -39,6 +39,10 @@ if not collection:
 #  "URL": "www.google.com",
 #  "ratings": [123,24],
 # }
+
+def _corsify_actual_response(response):
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
 
 def client_exist():
     connection = MongoClient("mongodb+srv://todd:O12345@cluster0.nloih.mongodb.net/myFirstDatabase?retryWrites=true&w=majority")
@@ -209,7 +213,7 @@ def set():
         # print("result :", end='')
         # print(result)
 
-        return result
+        return _corsify_actual_response(result)
     return {}
 
 @app.route("/get", methods=["POST","GET"])
@@ -240,5 +244,6 @@ def get():
         # if len(list(result)) == 0:
         #     return ''
 
-        return result
+        return _corsify_actual_response(result)
     return {}
+
